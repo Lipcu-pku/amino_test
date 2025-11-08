@@ -1,0 +1,313 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>氨基酸识别测验</title>
+<style>
+body { font-family: Arial, sans-serif; margin: 20px; text-align: center; }
+table { border-collapse: collapse; margin: 0 auto; table-layout: fixed; width: 80%; }
+th, td { border: 1px solid #ccc; padding: 10px; min-width: 150px; vertical-align: top; word-wrap: break-word; }
+button { margin: 5px; padding: 5px 10px; }
+img { width: 120px; height: 120px; object-fit: contain; }
+.stats-table { margin-top: 30px; width: 80%; }
+.stats-table th { background-color: #f0f0f0; }
+#quiz-table th, #quiz-table td { width: 25%; }
+#stats-table th:first-child, #stats-table td:first-child { width: 20%; }
+#stats-table th:not(:first-child), #stats-table td:not(:first-child) { width: 20%; }
+</style>
+</head>
+<body>
+
+<h1>氨基酸识别测验</h1>
+
+<table id="quiz-table">
+  <thead>
+    <tr>
+      <th>结构图</th>
+      <th>中文名</th>
+      <th>三字码</th>
+      <th>一字码</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr id="quiz-row">
+      <td id="col-image"></td>
+      <td id="col-chinese"></td>
+      <td id="col-three"></td>
+      <td id="col-one"></td>
+    </tr>
+    <tr id="button-row">
+      <td><button onclick="reveal('image')" id="reveal-image">显示答案</button><br><input type="checkbox" id="check-image"> 答对</td>
+      <td><button onclick="reveal('chinese')" id="reveal-chinese">显示答案</button><br><input type="checkbox" id="check-chinese"> 答对</td>
+      <td><button onclick="reveal('three')" id="reveal-three">显示答案</button><br><input type="checkbox" id="check-three"> 答对</td>
+      <td><button onclick="reveal('one')" id="reveal-one">显示答案</button><br><input type="checkbox" id="check-one"> 答对</td>
+    </tr>
+  </tbody>
+</table>
+
+<br>
+<button onclick="submitAndNext()">提交并下一题</button>
+<button onclick="clearStats()">清空统计数据</button>
+
+<h2>统计数据</h2>
+<table class="stats-table" id="stats-table">
+  <thead>
+    <tr>
+      <th>氨基酸</th>
+      <th>结构图</th>
+      <th>中文名</th>
+      <th>三字码</th>
+      <th>一字码</th>
+    </tr>
+  </thead>
+  <tbody></tbody>
+</table>
+
+<script>
+let aminoData = [];
+let current = null;
+let showType = null;
+let stats = {};
+
+function loadData() {
+  aminoData = [
+                {
+                    "chinese":"甘氨酸",
+                    "image":"Glycine",
+                    "three":"Gly",
+                    "one":"G"
+                },
+                {
+                    "chinese":"丙氨酸",
+                    "image":"Alanine",
+                    "three":"Ala",
+                    "one":"A"
+                },
+                {
+                    "chinese":"缬氨酸",
+                    "image":"Valine",
+                    "three":"Val",
+                    "one":"V"
+                },
+                {
+                    "chinese":"亮氨酸",
+                    "image":"Leucine",
+                    "three":"Leu",
+                    "one":"L"
+                },
+                {
+                    "chinese":"异亮氨酸",
+                    "image":"Isoleucine",
+                    "three":"Ile",
+                    "one":"I"
+                },
+                {
+                    "chinese":"脯氨酸",
+                    "image":"Proline",
+                    "three":"Pro",
+                    "one":"P"
+                },
+                {
+                    "chinese":"丝氨酸",
+                    "image":"Serine",
+                    "three":"Ser",
+                    "one":"S"
+                },
+                {
+                    "chinese":"苏氨酸",
+                    "image":"Threonine",
+                    "three":"Thr",
+                    "one":"T"
+                },
+                {
+                    "chinese":"半胱氨酸",
+                    "image":"Cysteine",
+                    "three":"Cys",
+                    "one":"C"
+                },
+                {
+                    "chinese":"甲硫氨酸",
+                    "image":"Methionine",
+                    "three":"Met",
+                    "one":"M"
+                },
+                {
+                    "chinese":"苯丙氨酸",
+                    "image":"Phenylalanine",
+                    "three":"Phe",
+                    "one":"F"
+                },
+                {
+                    "chinese":"酪氨酸",
+                    "image":"Tyrosine",
+                    "three":"Tyr",
+                    "one":"Y"
+                },
+                {
+                    "chinese":"色氨酸",
+                    "image":"Tryptophan",
+                    "three":"Trp",
+                    "one":"W"
+                },
+                {
+                    "chinese":"赖氨酸",
+                    "image":"Lysine",
+                    "three":"Lys",
+                    "one":"K"
+                },
+                {
+                    "chinese":"精氨酸",
+                    "image":"Arginine",
+                    "three":"Arg",
+                    "one":"R"
+                },
+                {
+                    "chinese":"组氨酸",
+                    "image":"Histidine",
+                    "three":"His",
+                    "one":"H"
+                },
+                {
+                    "chinese":"天冬氨酸",
+                    "image":"Aspartate",
+                    "three":"Asp",
+                    "one":"D"
+                },
+                {
+                    "chinese":"天冬酰胺",
+                    "image":"Asparagine",
+                    "three":"Asn",
+                    "one":"N"
+                },
+                {
+                    "chinese":"谷氨酸",
+                    "image":"Glutamate",
+                    "three":"Glu",
+                    "one":"E"
+                },
+                {
+                    "chinese":"谷氨酰胺",
+                    "image":"Glutamine",
+                    "three":"Gln",
+                    "one":"Q"
+                }
+            ];
+
+  // 从 localStorage 加载统计
+  const saved = localStorage.getItem('amino_stats');
+  stats = saved ? JSON.parse(saved) : {};
+
+  // 初始化统计表
+  aminoData.forEach(item => {
+    const name = item.chinese;
+    if (!stats[name]) {
+      stats[name] = { image: {total:0, wrong:0}, chinese:{total:0,wrong:0}, three:{total:0,wrong:0}, one:{total:0,wrong:0} };
+    }
+  });
+
+  nextQuestion();
+  updateStatsTable();
+}
+
+function randomChoice(arr) { return arr[Math.floor(Math.random() * arr.length)]; }
+
+function nextQuestion() {
+  current = randomChoice(aminoData);
+  showType = randomChoice(["image","chinese","three","one"]);
+
+  // 清空
+  ["image","chinese","three","one"].forEach(k => {
+    console.log(k);
+    document.getElementById("col-"+k).innerHTML = "";
+    if (k === showType) {
+        document.getElementById("reveal-"+k).disabled = true;
+        document.getElementById("check-"+k).checked = true;
+        document.getElementById("check-"+k).disabled = true;
+    } else {
+        document.getElementById("check-"+k).checked = false;
+        document.getElementById("check-"+k).disabled = false;
+    }
+  });
+
+  // 显示提示
+  if (showType === "image") {
+    document.getElementById("col-image").innerHTML = `<img src="pic/${current.image}.png" alt="${current.chinese}">`;
+  } else {
+    document.getElementById("col-"+showType).textContent = current[showType];
+  }
+
+  saveStats();
+  updateStatsTable();
+}
+
+function reveal(key) {
+  const cell = document.getElementById("col-"+key);
+  if (key === "image") {
+    cell.innerHTML = `<img src="pic/${current.image}.png" alt="${current.chinese}">`;
+  } else {
+    cell.textContent = current[key];
+  }
+}
+
+function submitAndNext() {
+  // 出题次数 +1
+  ["image","chinese","three","one"].forEach(k => {
+    if (k !== showType) {
+      stats[current.chinese][k].total++;
+    }
+  });
+  ["image","chinese","three","one"].forEach(k => {
+    if (!document.getElementById("check-"+k).checked) {
+      stats[current.chinese][k].wrong++;
+    }
+  });
+  saveStats();
+  nextQuestion();
+}
+
+function saveStats() {
+  localStorage.setItem('amino_stats', JSON.stringify(stats));
+}
+
+function updateStatsTable() {
+  const tbody = document.querySelector("#stats-table tbody");
+  tbody.innerHTML = "";
+  for (const [name, props] of Object.entries(stats)) {
+    const tr = document.createElement("tr");
+    let text = `<td>${name}</td>`
+    for (const [key, val] of Object.entries(props)) {
+      text += `<td>${val.wrong}/${val.total}</td>`;
+    }
+    tr.innerHTML = text;
+    tbody.appendChild(tr);
+  }
+}
+
+function clearStats() {
+  if (!confirm("确定要清空统计数据吗？此操作不可撤销！")) return;
+
+  // 清空 localStorage
+  localStorage.removeItem('amino_stats');
+
+  // 重置 stats 对象
+  stats = {};
+  aminoData.forEach(item => {
+    const name = item.chinese;
+    stats[name] = {
+      image: { total: 0, wrong: 0 },
+      chinese: { total: 0, wrong: 0 },
+      three: { total: 0, wrong: 0 },
+      one: { total: 0, wrong: 0 }
+    };
+  });
+
+  // 更新统计表显示
+  updateStatsTable();
+}
+
+loadData();
+</script>
+
+</body>
+</html>
