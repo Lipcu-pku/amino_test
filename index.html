@@ -225,6 +225,7 @@ function nextQuestion() {
         document.getElementById("check-"+k).checked = true;
         document.getElementById("check-"+k).disabled = true;
     } else {
+        document.getElementById("reveal-"+k).disabled = false;
         document.getElementById("check-"+k).checked = false;
         document.getElementById("check-"+k).disabled = false;
     }
